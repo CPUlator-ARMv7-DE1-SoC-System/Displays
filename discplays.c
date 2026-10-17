@@ -239,6 +239,10 @@ uint16_t animateEllipseBres(uint32_t tick_count, uint32_t delta_time, uint8_t an
 	return tick_count;
 }
 
+/*-----------------------------------------------------------------\\
+				   			  MAIN
+\\-----------------------------------------------------------------*/
+
 #define AVAILABLE_SWITCHES ((uint16_t) 2)
 
 int main(void)

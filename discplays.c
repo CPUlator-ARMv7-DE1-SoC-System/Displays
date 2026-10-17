@@ -35,7 +35,7 @@ void delay(volatile int count) {
 #define PI ((double) 3.141592654)
 #define EPSILON 160
 
-#define RADIUS ((int16_t) 80)
+#define RADIUS ((int16_t) 40)
 #define PERIOD ((char) 32)
 #define SEMI_PERIOD ((char) PERIOD/2)
 	
@@ -92,6 +92,41 @@ static int32_t animatedRadius(int32_t maxRadius, uint16_t phase){
     return 1 + ((maxRadius - 1) * (phase - SEMI_PERIOD) / SEMI_PERIOD);
 }
 
+
+void drawBresLine(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint16_t color){
+    int32_t dx, dy, p, x, y, sx, sy;
+
+    dx = abs(x1 - x0);
+    dy = abs(y1 - y0);
+
+    x = x0;
+    y = y0;
+
+    sx = (x0 < x1) ? 1 : -1;
+    sy = (y0 < y1) ? 1 : -1;
+
+    p = dx - dy;
+
+    while (x != x1 || y != y1){
+        putPixel(x, y, color);
+
+        int32_t p2 = 2 * p;
+
+        if (p2 > -dy){
+            p -= dy;
+            x += sx;
+        }
+
+        if (p2 < dx){
+            p += dx;
+            y += sy;
+        }
+    }
+
+    putPixel(x1, y1, color);
+}
+
+
 void centeredEllipse(int16_t x, int16_t y, volatile uint16_t *pixel, uint32_t tick_count){
     int32_t dx = abs(x - PIXEL_BUFFER_WIDTH / 2);
     int32_t dy = abs(y - PIXEL_BUFFER_HEIGHT / 2);
@@ -137,8 +172,9 @@ int16_t sinTable[PERIOD] = {
 };
 
 
-static inline void drawEllipsePoints(int32_t xc, int32_t yc, int32_t x, int32_t y, uint16_t color, int32_t cosA, int32_t sinA) {
-    int32_t rx1 = (x * cosA - y * sinA) >> 10;
+static inline void drawEllipsePoints(int32_t xc, int32_t yc, int32_t x, int32_t y, uint16_t color, int32_t cosA, int32_t sinA, bool isFirstPoint) {
+    
+	int32_t rx1 = (x * cosA - y * sinA) >> 10;
     int32_t ry1 = (x * sinA + y * cosA) >> 10;
 
     int32_t rx2 = (-x * cosA - y * sinA) >> 10;
@@ -149,12 +185,23 @@ static inline void drawEllipsePoints(int32_t xc, int32_t yc, int32_t x, int32_t 
 
     int32_t rx4 = (-x * cosA + y * sinA) >> 10;
     int32_t ry4 = (-x * sinA - y * cosA) >> 10;
-
+	
     putPixel(xc + rx1, yc + ry1, color);
     putPixel(xc + rx2, yc + ry2, color);
     putPixel(xc + rx3, yc + ry3, color);
     putPixel(xc + rx4, yc + ry4, color);
+	
+	if (x == 0) {
+		drawBresLine(xc, yc, xc + rx1, yc + ry1, color);
+		drawBresLine(xc, yc, xc + rx4, yc + ry4, color);
+	}
+
+	if (y == 0) {
+		drawBresLine(xc, yc, xc + rx2, yc + ry2, color);
+		drawBresLine(xc, yc, xc + rx3, yc + ry3, color);
+	}
 }
+	
 
 void ellipseBres(int32_t xc, int32_t yc, int32_t rx, int32_t ry, uint16_t phase, uint16_t color, uint8_t angle){
 	rx = animatedRadius(rx, phase);
@@ -172,10 +219,11 @@ void ellipseBres(int32_t xc, int32_t yc, int32_t rx, int32_t ry, uint16_t phase,
     int32_t dy = 2 * rx2 * y;
 
     int32_t p = ry2 - rx2 * ry + rx2;
+	
 
     /* REGION 1 */
     while (dx < dy){
-        drawEllipsePoints(xc, yc, x, y, color, cosA, sinA);
+        drawEllipsePoints(xc, yc, x, y, color, cosA, sinA, true);
 		
         x++;
         dx += 2 * ry2;
@@ -193,7 +241,7 @@ void ellipseBres(int32_t xc, int32_t yc, int32_t rx, int32_t ry, uint16_t phase,
     p = ry2 * (x + 1) * (x + 1) + rx2 * (y - 1) * (y - 1) - rx2 * ry2;
 
     while (y >= 0){
-        drawEllipsePoints(xc, yc, x, y, color,cosA, sinA);
+        drawEllipsePoints(xc, yc, x, y, color,cosA, sinA, true);
 
         y--;
         dy -= 2 * rx2;
@@ -211,10 +259,10 @@ void ellipseBres(int32_t xc, int32_t yc, int32_t rx, int32_t ry, uint16_t phase,
 uint16_t animateMultEllipsesBres(uint32_t tick_count, uint32_t delta_time, uint8_t angle, uint8_t relative_angle){
 	uint32_t phase0 = (tick_count % PERIOD); 
 	ellipseBres(PIXEL_BUFFER_WIDTH/2, PIXEL_BUFFER_HEIGHT/2, RADIUS, RADIUS, phase0, 0x00FF, angle);
-	ellipseBres(PIXEL_BUFFER_WIDTH/2, PIXEL_BUFFER_HEIGHT/2, RADIUS, RADIUS, phase0, 0xF00F, relative_angle);
+	ellipseBres(PIXEL_BUFFER_WIDTH/2, PIXEL_BUFFER_HEIGHT/2, (2*RADIUS), (2*RADIUS), phase0, 0xF00F, relative_angle);
 	delay(delta_time);
 	ellipseBres(PIXEL_BUFFER_WIDTH/2, PIXEL_BUFFER_HEIGHT/2, RADIUS, RADIUS, phase0,0x0000, angle);
-	ellipseBres(PIXEL_BUFFER_WIDTH/2, PIXEL_BUFFER_HEIGHT/2, RADIUS, RADIUS, phase0, 0x0000, relative_angle);
+	ellipseBres(PIXEL_BUFFER_WIDTH/2, PIXEL_BUFFER_HEIGHT/2, (2*RADIUS), (2*RADIUS), phase0, 0x0000, relative_angle);
 	tick_count++;
 	return tick_count;
 }
@@ -222,10 +270,10 @@ uint16_t animateMultEllipsesBres(uint32_t tick_count, uint32_t delta_time, uint8
 uint16_t animateMultTraceEllipsesBres(uint32_t tick_count, uint32_t delta_time, uint8_t angle, uint8_t relative_angle){
 	uint32_t phase0 = (tick_count % PERIOD); 
 	ellipseBres(PIXEL_BUFFER_WIDTH/2, PIXEL_BUFFER_HEIGHT/2, RADIUS, RADIUS, phase0, 0x00FF, angle++);
-	ellipseBres(PIXEL_BUFFER_WIDTH/2, PIXEL_BUFFER_HEIGHT/2, RADIUS, RADIUS, phase0, 0xF00F, relative_angle++);
+	ellipseBres(PIXEL_BUFFER_WIDTH/2, PIXEL_BUFFER_HEIGHT/2, (2*RADIUS), (2*RADIUS), phase0, 0xF00F, relative_angle++);
 	delay(delta_time);
 	ellipseBres(PIXEL_BUFFER_WIDTH/2, PIXEL_BUFFER_HEIGHT/2, RADIUS, RADIUS, phase0,0x0000, angle++);
-	ellipseBres(PIXEL_BUFFER_WIDTH/2, PIXEL_BUFFER_HEIGHT/2, RADIUS, RADIUS, phase0, 0x0000, relative_angle++);
+	ellipseBres(PIXEL_BUFFER_WIDTH/2, PIXEL_BUFFER_HEIGHT/2, (2*RADIUS), (2*RADIUS), phase0, 0x0000, relative_angle++);
 	tick_count++;
 	return tick_count;
 }
@@ -238,10 +286,6 @@ uint16_t animateEllipseBres(uint32_t tick_count, uint32_t delta_time, uint8_t an
 	tick_count++;
 	return tick_count;
 }
-
-/*-----------------------------------------------------------------\\
-				   			  MAIN
-\\-----------------------------------------------------------------*/
 
 #define AVAILABLE_SWITCHES ((uint16_t) 2)
 

@@ -150,3 +150,134 @@ For example, the program could store the previous color of each affected pixel i
 This would allow the Bresenham-based approach to work with more complex backgrounds, including the grid, without having to redraw the entire screen after every frame. It would, however, require additional memory and careful handling of pixels that are covered by multiple overlapping shapes.
 
 This is only one possible extension. Readers are encouraged to explore their own approaches to background preservation and rendering, using the current implementation as a starting point.
+
+<br>
+
+### 4. Equation-Based Ellipse Animation
+
+The equation-based approach uses three functions to create the animation: `draw()`, `animate()`, and `centeredEllipse()`. Together, they demonstrate how a mathematical equation can be translated into individual pixel operations and how function pointers can be used to make drawing routines reusable.
+
+#### Function Pointers in `draw()` and `animate()`
+
+Both `draw()` and `animate()` iterate through the entire pixel buffer, visiting every pixel from the top-left corner to the bottom-right corner. However, rather than defining what should happen to each pixel themselves, they receive a function pointer as an argument. This allows the caller to decide how each pixel should be processed.
+
+For example, the `draw()` function is defined as follows:
+
+```c
+void draw(void (*function)(int16_t, int16_t, volatile uint16_t*)) {
+    for (int y = 0; y < PIXEL_BUFFER_HEIGHT; y++) {
+        for (int x = 0; x < PIXEL_BUFFER_WIDTH; x++) {
+            volatile uint16_t *pixel = getPixel(x, y);
+            function(x, y, pixel);
+        }
+    }
+}
+```
+
+The parameter `function` is a function pointer. It points to a function that accepts three arguments: the pixel's x-coordinate, its y-coordinate, and a pointer to its 16-bit pixel value. The function must return `void`, meaning it does not return a value.
+
+Inside the nested loops, `draw()` calculates the address of each pixel using `getPixel()` and passes the coordinates and pixel pointer to the supplied function. The expression `function(x, y, pixel)` then calls the function through the pointer.
+
+This means that the same iteration logic can be reused for different drawing operations. For example, calling `draw(clear)` processes every pixel using the `clear()` function, while calling `draw(grid)` processes every pixel using `grid()`.
+
+The `animate()` function uses the same principle but also passes a frame value, `tick_count`, to the drawing function:
+
+```c
+void animate(
+    void (*function)(int16_t, int16_t, volatile uint16_t*, uint32_t),
+    uint32_t tick_count,
+    uint32_t delta_time
+) {
+    for (int y = 0; y < PIXEL_BUFFER_HEIGHT; y++) {
+        for (int x = 0; x < PIXEL_BUFFER_WIDTH; x++) {
+            volatile uint16_t *pixel = getPixel(x, y);
+            function(x, y, pixel, tick_count);
+        }
+    }
+    delay(delta_time);
+}
+```
+
+Here, the function pointer refers to a function that accepts the same three pixel-related arguments as before, together with a fourth argument containing the current tick count. Once every pixel has been processed, `animate()` calls `delay()` to pause before returning.
+
+In this implementation, `animate()` does not itself define an animation or determine which pixels belong to a shape. Instead, it provides the iteration, passes the current animation state to the drawing function, and introduces a delay. The supplied function determines how that state affects the image.
+
+This separation is useful because the iteration and timing logic can be reused without having to rewrite it for every drawing algorithm.
+
+#### Drawing an Ellipse with `centeredEllipse()`
+
+The function `centeredEllipse()` provides the pixel-processing logic for the equation-based approach. It uses the mathematical equation of an ellipse to determine whether a pixel lies sufficiently close to the ellipse's boundary.
+
+A centered ellipse can be described by the equation:
+
+\[
+\frac{x^2}{a^2}+\frac{y^2}{b^2}=1
+\]
+
+Here, \(a\) and \(b\) represent the horizontal and vertical radii. For a pixel at coordinates \((x,y)\), the equation evaluates to approximately \(1\) when the pixel lies on the ellipse's boundary.
+
+Since the ellipse is centered on the display, the implementation first calculates the absolute distances between the current pixel and the center of the screen:
+
+```c
+int32_t dx = abs(x - PIXEL_BUFFER_WIDTH / 2);
+int32_t dy = abs(y - PIXEL_BUFFER_HEIGHT / 2);
+```
+
+With a display resolution of 320 × 240 pixels, the center used by the program is \((160,120)\).
+
+The function then determines the radii for the current frame:
+
+```c
+int32_t a = animatedRadius(RADIUS, tick_count);
+int32_t b = RADIUS;
+```
+
+The horizontal radius \(a\) changes according to `tick_count`, while the vertical radius \(b\) remains fixed at `RADIUS`, which is defined as 40. This variation changes the ellipse's shape over time.
+
+To avoid performing floating-point division for every pixel, the implementation rearranges the ellipse equation. Multiplying both sides by \(a^2b^2\) gives:
+
+```math
+x^2b^2+y^2a^2=a^2b^2
+```
+
+The code calculates the corresponding integer values:
+
+```c
+int32_t aSquared = a * a;
+int32_t bSquared = b * b;
+
+int32_t value = dx * dx * bSquared + dy * dy * aSquared;
+int32_t target = aSquared * bSquared;
+```
+
+The variable `value` represents the left-hand side of the rearranged equation, while `target` represents its right-hand side. For a pixel exactly on the mathematical boundary, the two values would be equal.
+
+In practice, pixel coordinates are discrete integers, so an exact equality would not necessarily produce a continuous-looking ellipse. The implementation therefore allows a tolerance:
+
+```c
+if (abs(value - target) <= EPSILON * aSquared) {
+    *pixel = 0xFFFF;
+}
+```
+
+If the difference between `value` and `target` falls within the permitted tolerance, the pixel is colored white (`0xFFFF`). Otherwise, `centeredEllipse()` leaves the pixel unchanged. This is important because the function draws the ellipse's boundary rather than filling its interior or clearing the background.
+
+#### Putting the Animation Together
+
+The equation-based animation is triggered by push button 0 in either switch mode. In `main()`, the program updates `tick_count` and passes `centeredEllipse` to `animate()`:
+
+```c
+tick_count = (tick_count % PERIOD) + 1;
+animate(centeredEllipse, tick_count, delta_time);
+tick_count++;
+```
+
+The call `animate(centeredEllipse, tick_count, delta_time)` passes the function itself as an argument. The `animate()` function then invokes `centeredEllipse()` for each pixel, using the same tick count throughout that frame.
+
+After the animation call returns, `main()` increments `tick_count` again and redraws the background. In the first switch mode, it calls `draw(clear)` to produce a black background. In the second mode, it calls `draw(grid)` to restore the grid pattern.
+
+The radius calculation in `animatedRadius()` uses a period of 32 phases. As the phase progresses, the horizontal radius decreases from its maximum value toward 1 and then increases again, producing a repeating animation.
+
+One consequence of this design is that the entire pixel buffer is processed for every frame, even though only pixels close to the ellipse's boundary are colored. This makes the implementation straightforward and allows the background to be rendered independently, but it also contributes to the slower animation observed in CPUlator.
+
+Overall, this approach demonstrates how function pointers separate the mechanics of iterating over a pixel buffer from the specific algorithm used to draw a shape. The same mechanism can support different drawing operations simply by passing a different function to `draw()` or `animate()`.

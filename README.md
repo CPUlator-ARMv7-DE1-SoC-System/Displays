@@ -348,14 +348,14 @@ However, this approach does not restore the original colour of a pixel. In the s
 
 Overall, the Bresenham-based implementation demonstrates an alternative way to generate ellipse graphics. By calculating and plotting boundary points directly, it avoids scanning the entire pixel buffer for every frame and provides a foundation for animating multiple ellipses with different colours and angle indices.
 
-> **Note on direction selection**
+ **Note on direction selection**
  ```c
 sx = (x0 < x1) ? 1 : -1;
 sy = (y0 < y1) ? 1 : -1;
 ```
 
-> These statements determine the direction in which the line-drawing algorithm moves along the horizontal and vertical axes. The conditional operator (`?:`) checks whether the starting coordinate is smaller than the ending coordinate. If it is, the corresponding step is set to `1`, moving in the positive direction; otherwise, it is set to `-1`, moving in the negative direction.
-> <br>
+ These statements determine the direction in which the line-drawing algorithm moves along the horizontal and vertical axes. The conditional operator (`?:`) checks whether the starting coordinate is smaller than the ending coordinate. If it is, the corresponding step is set to `1`, moving in the positive direction; otherwise, it is set to `-1`, moving in the negative direction.
+ 
 The variables `sx` and `sy` therefore allow the same line-drawing algorithm to handle lines in different directions, including lines that slope upwards, downwards, left or right. Instead of requiring separate algorithms for different line orientations, the step values determine how the coordinates are updated as the algorithm progresses from the starting point to the endpoint.
-> <br>
+
 This differs from the equation-based approach, where the background can be redrawn after the animation. In the current Bresenham implementation, erasure relies on the assumption that the background behind the animated shapes is black. Preserving an existing background would require a different approach to restoring the pixels covered by each ellipse.

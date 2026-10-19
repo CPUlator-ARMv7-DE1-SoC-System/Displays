@@ -373,3 +373,59 @@ Over time, I realised that the decision parameters were central to this process.
 Another idea that influenced the implementation was the approach to erasing animated shapes. I came across a YouTube video discussing how older graphics and animations had to work within strict memory and performance constraints. One technique involved modifying selected parts of an existing image to create the illusion of movement, rather than repeatedly redrawing the entire scene. This inspired me to erase the ellipses by drawing over them in black before drawing the next frame. Although this is a simple solution for a black background, it also helped me recognise the importance of considering how an animation interacts with the image behind it.
 
 Overall, exploring Bresenham's algorithms helped me move beyond treating drawing algorithms as ready-made solutions. It gave me a better understanding of how decision parameters, pixel selection and geometric symmetry work together to make raster graphics more efficient. It also showed me that improving performance involves more than choosing a faster drawing algorithm: the way an animation is erased and the background is maintained can affect the overall design as well.
+
+<br>
+
+## Notes and Limitations
+
+The current implementation demonstrates two approaches to drawing and animating ellipses, but several aspects of the code limit its flexibility and affect how it can be used.
+
+- **Background handling:** The Bresenham-based animation functions erase ellipses by drawing over them in black (`0x0000`). This works on a black background, but it does not restore pixels that previously belonged to the grid or another shape. Supporting arbitrary backgrounds would require storing and restoring the original pixel colours, or redrawing the background and all relevant shapes after each frame.
+
+- **Performance trade-offs:** The equation-based approach evaluates every pixel in the 320 × 240 display buffer for each frame, making it more computationally expensive than plotting only the boundary pixels. The Bresenham-based approach reduces the number of pixels that need to be processed, but its current erasure method limits how well it works with more complex backgrounds. Therefore, drawing efficiency is only one consideration when designing an animation system.
+
+- **Fixed display configuration:** The implementation uses a fixed pixel-buffer base address (`0xC8000000`), display dimensions of 320 × 240 pixels, and a row stride of 1024 bytes. These assumptions are specific to the current display configuration and would need to be revisited if the program were adapted to a different resolution or pixel-buffer layout.
+
+- **Limited animation parameters:** The ellipse is positioned around the fixed display centre `(160, 120)`, and its dimensions are determined by constants such as `RADIUS` and the fixed vertical radius. The animation changes the horizontal radius over time, but the current implementation does not provide general controls for changing the ellipse's position, dimensions or other properties independently.
+
+- **Discrete angle resolution:** The sine and cosine lookup tables contain 32 entries, so the available angle indices are limited to a fixed set of values. This keeps the transformations simple and avoids calculating trigonometric functions repeatedly, but it also restricts the range of orientations that can be represented directly by the lookup tables.
+
+- **Blocking animation timing:** The animation functions use a busy-wait delay to control the time between drawing and erasing shapes. This occupies the processor while the delay runs and does not provide precise timing guarantees. A more advanced implementation could use a timer or another timing mechanism to control animation updates.
+
+- **Restricted input handling:** The program recognises specific switch states and exact push-button register values. Only the combinations explicitly handled in the main loop trigger their corresponding actions. For example, when both switches are on, neither display-mode branch runs, and unrecognised button combinations do not trigger an animation. Expanding the input handling would allow more flexible interaction.
+
+- **Pixel restoration and overlapping shapes:** The multiple-ellipse animations draw and erase shapes in sequence without maintaining a separate representation of the underlying scene. If shapes overlap, erasing one can also overwrite pixels belonging to another. A more general graphics implementation would need to account for overlapping objects and preserve the correct background when redrawing them.
+
+Despite these limitations, the current implementation provides a useful comparison between equation-based and Bresenham-based rasterization. It demonstrates how the choice of drawing algorithm affects performance, and how animation timing, pixel restoration and background management influence the overall behaviour of a graphics program.
+
+<br>
+
+## Learning Outcomes
+
+- **Applying Mathematical Knowledge:** I learned how to build on my existing knowledge of circle equations and extend it to ellipses. Translating the equation into a working drawing algorithm also taught me that understanding the mathematics is only part of the process, as it must be adapted to the limitations of pixel-based graphics.
+
+- **Understanding Algorithms Beyond Their Implementation:** Working with Bresenham's algorithms taught me the importance of understanding the reasoning behind an algorithm rather than simply implementing an existing solution. In particular, exploring the decision parameters helped me understand how individual pixel choices approximate a continuous geometric shape.
+
+- **Recognising the Importance of Efficiency:** Comparing the two approaches gave me a practical understanding of how algorithm design affects performance. I could see why evaluating every pixel becomes expensive and how calculating only the relevant boundary points provides a more efficient alternative.
+
+- **Working with Low-Level Graphics:** Implementing the drawing routines gave me experience working directly with memory addresses, pointer arithmetic and the pixel buffer. It also helped me understand how mathematical calculations ultimately translate into changes on a simulated display.
+
+- **Understanding Animation and Its Limitations:** Developing the animation routines taught me that drawing a shape is only one part of creating an animation. I also had to consider timing, erasing previous frames and preserving the background. This helped me recognise how seemingly simple implementation choices can affect the behaviour and flexibility of the overall program.
+
+Overall, this experiment helped me connect mathematical concepts with practical algorithm design and low-level programming. More importantly, it taught me to look beyond whether an implementation works and to understand why it works, what makes it efficient, and which limitations arise from the choices made during development.
+
+<br>
+
+## Possible Extensions
+
+- **Background Preservation:** The Bresenham-based animations could be extended to restore the original pixel colours instead of erasing shapes by drawing over them in black. This would allow the animations to work with different backgrounds and make it easier to combine multiple graphical elements.
+
+- **Interactive Shape Manipulation:** Additional controls could be introduced to adjust the position, size and orientation of the ellipses. This would allow users to explore how changes to the underlying parameters affect the resulting shapes in real time.
+
+- **Additional Drawing Algorithms:** Other rasterization algorithms could be implemented and compared with the existing equation-based and Bresenham-based approaches. This would provide further insight into their differences in performance, accuracy and computational complexity.
+
+- **More Complex Animations:** The existing drawing routines could be expanded to support more complex animations involving multiple independently moving or rotating shapes. This would also introduce the challenge of managing overlapping objects and preserving the background between frames.
+
+---
+
+*This experiment is part of Dev-Trace, a collection documenting my ongoing learning process with C programming and the CPUlator ARMv7 DE1-SoC System.*

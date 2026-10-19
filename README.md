@@ -210,11 +210,11 @@ The function `centeredEllipse()` provides the pixel-processing logic for the equ
 
 A centered ellipse can be described by the equation:
 
-\[
+```math
 \frac{x^2}{a^2}+\frac{y^2}{b^2}=1
-\]
+```
 
-Here, \(a\) and \(b\) represent the horizontal and vertical radii. For a pixel at coordinates \((x,y)\), the equation evaluates to approximately \(1\) when the pixel lies on the ellipse's boundary.
+Here, $a$ and $b$ represent the horizontal and vertical radii. For a pixel at coordinates \((x,y)\), the equation evaluates to approximately \(1\) when the pixel lies on the ellipse's boundary.
 
 Since the ellipse is centered on the display, the implementation first calculates the absolute distances between the current pixel and the center of the screen:
 

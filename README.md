@@ -359,3 +359,17 @@ sy = (y0 < y1) ? 1 : -1;
 The variables `sx` and `sy` therefore allow the same line-drawing algorithm to handle lines in different directions, including lines that slope upwards, downwards, left or right. Instead of requiring separate algorithms for different line orientations, the step values determine how the coordinates are updated as the algorithm progresses from the starting point to the endpoint.
 
 This differs from the equation-based approach, where the background can be redrawn after the animation. In the current Bresenham implementation, erasure relies on the assumption that the background behind the animated shapes is black. Preserving an existing background would require a different approach to restoring the pixels covered by each ellipse.
+
+<br>
+
+**Challenges and approach**
+
+Coming from the equation-based approach, efficiency and performance were the main motivations for exploring an alternative method of drawing ellipses. Since evaluating every pixel in the display buffer for each frame was computationally expensive, I searched online for more efficient drawing techniques and came across Bresenham's algorithms. These offered a way to draw shapes by calculating the boundary pixels directly instead of processing the entire screen.
+
+Although implementing the algorithms was relatively straightforward once I had found suitable references, understanding how they actually worked was a much greater challenge. Rather than simply copying an implementation, I wanted to understand the reasoning behind each calculation and how the algorithm decided which pixel to draw next.
+
+Over time, I realised that the decision parameters were central to this process. They determine how the algorithm evaluates its progress along a line or ellipse and chooses the next pixel to approximate the intended boundary. Describing this process in general terms or writing simplified pseudocode was relatively intuitive, but translating that understanding into a complete implementation required a much deeper grasp of what happens after each pixel is selected. In particular, I had to understand how the decision parameters are updated at each step and how the symmetry of an ellipse allows its boundary to be divided into regions and calculated efficiently.
+
+Another idea that influenced the implementation was the approach to erasing animated shapes. I came across a YouTube video discussing how older graphics and animations had to work within strict memory and performance constraints. One technique involved modifying selected parts of an existing image to create the illusion of movement, rather than repeatedly redrawing the entire scene. This inspired me to erase the ellipses by drawing over them in black before drawing the next frame. Although this is a simple solution for a black background, it also helped me recognise the importance of considering how an animation interacts with the image behind it.
+
+Overall, exploring Bresenham's algorithms helped me move beyond treating drawing algorithms as ready-made solutions. It gave me a better understanding of how decision parameters, pixel selection and geometric symmetry work together to make raster graphics more efficient. It also showed me that improving performance involves more than choosing a faster drawing algorithm: the way an animation is erased and the background is maintained can affect the overall design as well.

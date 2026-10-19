@@ -281,3 +281,13 @@ The radius calculation in `animatedRadius()` uses a period of 32 phases. As the 
 One consequence of this design is that the entire pixel buffer is processed for every frame, even though only pixels close to the ellipse's boundary are colored. This makes the implementation straightforward and allows the background to be rendered independently, but it also contributes to the slower animation observed in CPUlator.
 
 Overall, this approach demonstrates how function pointers separate the mechanics of iterating over a pixel buffer from the specific algorithm used to draw a shape. The same mechanism can support different drawing operations simply by passing a different function to `draw()` or `animate()`.
+
+**Challenges and approach**
+
+My approach to the equation-based ellipse drawing was based on prior knowledge from my mathematics courses, where I had worked with the equation of a circle. I wanted to extend this idea to ellipses, so I researched the general equation of an ellipse and explored how it could be applied to drawing shapes on a pixel display.
+
+One of the first challenges was translating the equation into a form that could be evaluated efficiently for every pixel. The original equation involves floating-point division, which would introduce unnecessary computational overhead when processing the entire pixel buffer. Through further research into how ellipse equations are used in computer graphics, I discovered that the equation could be rearranged to avoid division. This allowed the implementation to use integer arithmetic for the pixel calculations.
+
+The second challenge was determining which pixels should be considered part of the ellipse's boundary. Initially, I checked whether the equation evaluated to an exact match, but this resulted in only a few pixels being drawn. Since the display operates on discrete pixel coordinates, many pixels lie close to the mathematical boundary without satisfying an exact equality. Introducing an epsilon value established an acceptance range around the boundary, allowing more pixels to be included and producing a more continuous ellipse.
+
+This tolerance also introduced a way to control the apparent stroke thickness of the ellipse. By adjusting the acceptance range, the number of pixels classified as part of the boundary can be changed. Working through these challenges helped me understand how a continuous mathematical equation can be translated into a discrete graphical representation, while also revealing the performance limitations of evaluating every pixel for each animation frame.

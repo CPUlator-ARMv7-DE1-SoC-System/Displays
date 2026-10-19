@@ -88,3 +88,65 @@ The bit shifts in the calculation operate on integer values: `y << 10` calculate
 Using `uintptr_t` therefore makes the address calculation explicit: the program first calculates a numerical memory address and then converts it into a pointer to the pixel data.
 
 This addressing scheme connects the two-dimensional coordinates of a pixel to its location in linear memory. By using bit shifts instead of multiplication, the code takes advantage of the power-of-two row stride to express the address calculation compactly.
+
+<br>
+
+### 2. Approaches to Ellipse Drawing
+
+#### Equation-Based Approach
+
+The initial implementation uses the mathematical equation of an ellipse to determine which pixels should be colored. By iterating through the entire pixel buffer and evaluating each pixel's position relative to the ellipse equation, the program identifies the pixels that form the ellipse's boundary.
+
+To animate the ellipse, the program changes its radius for each frame and repeats the drawing process. After each frame, the pixel buffer is cleared before the next ellipse is drawn, allowing the animation to progress through a sequence of different ellipse sizes.
+
+This approach worked well in the CPUlator simulator and provided a straightforward way to translate a mathematical equation into a graphical representation. However, iterating through all 320 × 240 pixels for every frame introduces a considerable amount of work, even though only a small portion of the screen belongs to the ellipse's boundary. As a result, the animation was relatively slow, and the individual frames could visibly be seen being drawn across the screen.
+
+#### Bresenham-Based Approach
+
+The performance limitations of the equation-based approach motivated the exploration of Bresenham-style rasterization algorithms. Instead of checking every pixel in the buffer, the algorithm calculates the points along the ellipse's boundary and draws only those pixels.
+
+By avoiding a full-screen iteration for every ellipse, this approach reduces the amount of pixel processing required for each frame. The program can therefore draw and erase ellipses more efficiently, making the animation appear smoother and reducing the visibility of the individual drawing steps.
+
+The experiment consequently demonstrates two different approaches to rasterizing an ellipse: evaluating a mathematical equation across the pixel buffer and calculating boundary points using a Bresenham-style algorithm. Comparing them illustrates how the choice of drawing algorithm affects the performance and visual behavior of an animation.
+
+<br>
+
+### 3. Implementation of the Drawing Approaches
+
+The two ellipse-drawing approaches are integrated into the program as separate visualization modes. Both can be used with either a black background or a grid, allowing the differences in their drawing and clearing strategies to be explored.
+
+#### Equation-Based Ellipse Animation
+
+The equation-based approach is implemented in `centeredEllipse()`. For every frame, the `animate()` function iterates through the entire pixel buffer and passes each pixel to the drawing function. The ellipse equation is evaluated for each pixel, and pixels that satisfy the boundary condition are colored white.
+
+After the animation step, the program explicitly redraws the background. Depending on the selected switch mode, it either clears the pixel buffer using `clear()` or draws the grid using `grid()`.
+
+This separation between drawing the ellipse and rendering the background allows the equation-based approach to work with different background patterns. The drawing function only needs to identify the pixels belonging to the ellipse, while the background can be rendered independently afterward.
+
+The main disadvantage is again, performance. Since every pixel in the 320 × 240 buffer is examined for each frame, the program performs many calculations that do not contribute directly to the ellipse itself.
+
+#### Bresenham-Based Ellipse Animation
+
+The Bresenham-based approach uses `ellipseBres()` to calculate and draw points along the ellipse's boundary. Instead of examining the entire pixel buffer, the algorithm focuses on the points required to represent the ellipse.
+
+The animation functions, such as `animateEllipseBres()` and `animateMultEllipsesBres()`, first draw the ellipse in its designated color, introduce a delay, and then draw the same ellipse again in black. This effectively erases the previous frame without clearing or redrawing the entire pixel buffer.
+
+This approach reduces the amount of drawing required and allows the ellipse to be updated more quickly. However, it introduces an important limitation: **drawing over the previous ellipse with black assumes that the background underneath it is black**. If the ellipse overlaps a grid or another non-black background pattern, those pixels are replaced with black rather than restored to their original colors.
+
+Consequently, the current Bresenham-based animation is best suited to a static, black background unless additional logic is introduced to preserve the background.
+
+#### Background Modes: Black and Grid
+
+The program provides two background modes through the switch configuration.
+
+These modes illustrate a trade-off between the two approaches.
+
+#### Possible Extension: Preserving Background Pixels
+
+One way to extend the Bresenham-based implementation would be to preserve the original color of each pixel before drawing the ellipse over it. When the ellipse needs to be erased, the program could restore the saved color instead of writing black.
+
+For example, the program could store the previous color of each affected pixel in a separate buffer. When drawing an ellipse, it would save the background color before replacing that pixel with the ellipse color. When erasing the ellipse, it would restore the saved value.
+
+This would allow the Bresenham-based approach to work with more complex backgrounds, including the grid, without having to redraw the entire screen after every frame. It would, however, require additional memory and careful handling of pixels that are covered by multiple overlapping shapes.
+
+This is only one possible extension. Readers are encouraged to explore their own approaches to background preservation and rendering, using the current implementation as a starting point.

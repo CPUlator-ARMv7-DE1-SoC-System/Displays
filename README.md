@@ -12,6 +12,15 @@ The experiment also explores Bresenham-style rasterization algorithms as an alte
 
 <br>
 
+## Objectives
+
+* Controlled and save placing and reading of the pixel inside the buffer
+* Different approaches for different purposes: Equational vs Bresenham
+* Function-Pointer
+* Controlling timed events
+
+<br>
+
 ## Control Scheme
 
 The current implementation uses the switches to select the display mode and the push buttons to trigger different ellipse drawing and animation routines.

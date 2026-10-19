@@ -214,7 +214,7 @@ A centered ellipse can be described by the equation:
 \frac{x^2}{a^2}+\frac{y^2}{b^2}=1
 ```
 
-Here, $a$ and $b$ represent the horizontal and vertical radii. For a pixel at coordinates \((x,y)\), the equation evaluates to approximately \(1\) when the pixel lies on the ellipse's boundary.
+Here, $a$ and $b$ represent the horizontal and vertical radii. For a pixel at coordinates $(x,y)$, the equation evaluates to approximately $1$ when the pixel lies on the ellipse's boundary.
 
 Since the ellipse is centered on the display, the implementation first calculates the absolute distances between the current pixel and the center of the screen:
 
@@ -223,7 +223,7 @@ int32_t dx = abs(x - PIXEL_BUFFER_WIDTH / 2);
 int32_t dy = abs(y - PIXEL_BUFFER_HEIGHT / 2);
 ```
 
-With a display resolution of 320 × 240 pixels, the center used by the program is \((160,120)\).
+With a display resolution of 320 × 240 pixels, the center used by the program is $(160,120)$.
 
 The function then determines the radii for the current frame:
 
@@ -232,9 +232,9 @@ int32_t a = animatedRadius(RADIUS, tick_count);
 int32_t b = RADIUS;
 ```
 
-The horizontal radius \(a\) changes according to `tick_count`, while the vertical radius \(b\) remains fixed at `RADIUS`, which is defined as 40. This variation changes the ellipse's shape over time.
+The horizontal radius $a$ changes according to `tick_count`, while the vertical radius $b$ remains fixed at `RADIUS`, which is defined as 40. This variation changes the ellipse's shape over time.
 
-To avoid performing floating-point division for every pixel, the implementation rearranges the ellipse equation. Multiplying both sides by \(a^2b^2\) gives:
+To avoid performing floating-point division for every pixel, the implementation rearranges the ellipse equation. Multiplying both sides by $a^2b^2$ gives:
 
 ```math
 x^2b^2+y^2a^2=a^2b^2

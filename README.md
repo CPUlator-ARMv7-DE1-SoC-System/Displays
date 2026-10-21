@@ -21,8 +21,8 @@ The experiment also explores Bresenham-style rasterization algorithms as an alte
     * 3.4 [Equation-Based Ellipse Animation](#equation-based-ellipse-animation)
     * 3.5 [Bresenham-Based Ellipse Animation](#equation-based-ellipse-animation)
 4. [Notes and Limitations](#notes-and-limitations)
-5. [Learning Outcomes](#learning-outcome)
-6. [Possible Extentions](#possible-extentions)
+5. [Learning Outcomes](#learning-outcomes)
+6. [Possible Extensions](#possible-extensions)
 
 <br>
 

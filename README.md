@@ -56,7 +56,7 @@ The two switch modes share most of their animation routines. Their main differen
 
 ## Implementation
 
-### 1. VGA Pixel Buffer
+### VGA Pixel Buffer
 
 The VGA pixel buffer is the region of memory used to represent the image displayed on the screen. In the CPUlator ARMv7 DE1-SoC System simulator, the pixel buffer starts at address `0xC8000000` and represents a display with a resolution of 320 × 240 pixels.
 
@@ -99,7 +99,7 @@ This addressing scheme connects the two-dimensional coordinates of a pixel to it
 
 <br>
 
-### 2. Approaches to Ellipse Drawing
+### Approaches to Ellipse Drawing
 
 #### Equation-Based Approach
 
@@ -119,7 +119,7 @@ The experiment consequently demonstrates two different approaches to rasterizing
 
 <br>
 
-### 3. Implementation of the Drawing Approaches
+### Implementation of the Drawing Approaches
 
 The two ellipse-drawing approaches are integrated into the program as separate visualization modes. Both can be used with either a black background or a grid, allowing the differences in their drawing and clearing strategies to be explored.
 

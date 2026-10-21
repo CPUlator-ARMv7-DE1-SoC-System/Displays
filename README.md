@@ -10,6 +10,14 @@ The initial approach uses the equation of an ellipse to determine which pixels l
 
 The experiment also explores Bresenham-style rasterization algorithms as an alternative approach to drawing ellipses. Comparing these methods provides an opportunity to examine different ways of translating geometric shapes into discrete pixels on a display.
 
+### Table of contents
+
+1. [Objectives](#objectives)
+2. [Control Scheme](#control-scheme)
+3. [Implementation Overview](#implementation-overview)
+    * 3.1 [VGA Buffer](#1.-vga-pixel-buffer)
+    * 3.2 [Approaches to Ellipse Drawing](#2.-approaches-to-ellipse-drawing)
+
 <br>
 
 ## Objectives

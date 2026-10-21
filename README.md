@@ -17,6 +17,12 @@ The experiment also explores Bresenham-style rasterization algorithms as an alte
 3. [Implementation Overview](#implementation)
     * 3.1 [VGA Buffer](#vga-pixel-buffer)
     * 3.2 [Approaches to Ellipse Drawing](#approaches-to-ellipse-drawing)
+    * 3.3 [Implementation of the Drawing Approaches](#implementation-of-the-drawing-approaches)
+    * 3.4 [Equation-Based Ellipse Animation](#equation-based-ellipse-animation)
+    * 3.5 [Bresenham-Based Ellipse Animation](#equation-based-ellipse-animation)
+4. [Notes and Limitations](#notes-and-limitations)
+5. [Learning Outcomes](#learning-outcome)
+6. [Possible Extentions](#possible-extentions)
 
 <br>
 
@@ -161,7 +167,7 @@ This is only one possible extension. Readers are encouraged to explore their own
 
 <br>
 
-### 4. Equation-Based Ellipse Animation
+### Equation-Based Ellipse Animation
 
 The equation-based approach uses three functions to create the animation: `draw()`, `animate()`, and `centeredEllipse()`. Together, they demonstrate how a mathematical equation can be translated into individual pixel operations and how function pointers can be used to make drawing routines reusable.
 
@@ -302,13 +308,13 @@ This tolerance also introduced a way to control the apparent stroke thickness of
 
 <br>
 
-### 5. Bresenham-Based Ellipse Animation
+### Bresenham-Based Ellipse Animation
 
 Unlike the equation-based approach, which evaluates every pixel in the display buffer, the Bresenham-based approach calculates points along the ellipse's boundary and plots them directly. This reduces the number of pixels that need to be processed and makes it more suitable for drawing animated shapes.
 
 The implementation is divided into several functions. `ellipseBres()` calculates the ellipse boundary, `drawEllipsePoints()` plots the calculated points, and `drawBresLine()` connects selected points to the centre of the display. The animation functions then combine these operations to produce moving ellipses.
 
-#### 5.1. Calculating the Ellipse Boundary
+#### Calculating the Ellipse Boundary
 
 The main function responsible for drawing an ellipse is `ellipseBres()`. It uses a Bresenham-style, midpoint-based algorithm to determine which pixel coordinates best approximate the mathematical ellipse.
 
@@ -316,7 +322,7 @@ Rather than evaluating the ellipse equation at every coordinate on the screen, t
 
 The horizontal radius is also animated using `animatedRadius()`, while the vertical radius remains fixed. This allows the ellipse to change shape over time, following the same shrinking and growing pattern used by the equation-based approach.
 
-#### 5.2. Plotting and Rotating Ellipse Points
+#### Plotting and Rotating Ellipse Points
 
 Once the boundary points have been calculated, `drawEllipsePoints()` is responsible for plotting them. The function uses the calculated coordinates together with precomputed sine and cosine values to transform the points before drawing them with `putPixel()`.
 
@@ -326,7 +332,7 @@ The angle is represented by an index into these tables. By changing the index, t
 
 The `drawEllipsePoints()` function also calls `drawBresLine()` for selected points when either coordinate is zero. This draws lines between the centre and those points, adding lines to the rendered shape when the relevant condition is met.
 
-#### 5.3. Drawing Lines with Bresenham's Algorithm
+#### Drawing Lines with Bresenham's Algorithm
 
 The `drawBresLine()` function uses Bresenham's line algorithm to draw a straight line between two coordinates. Instead of calculating every point using floating-point operations, the algorithm uses integer-based error calculations to determine which pixels best approximate the line.
 
@@ -334,7 +340,7 @@ The function plots the line by calling `putPixel()` for the calculated coordinat
 
 This function is also used by `drawEllipsePoints()` to connect selected ellipse points to the centre. Separating line drawing from ellipse calculation allows the same line-drawing routine to be reused wherever a straight line is needed.
 
-#### 5.4. Animating and Erasing Ellipses
+#### Animating and Erasing Ellipses
 
 The implementation contains three animation functions that use the Bresenham-based drawing routines:
 
@@ -348,7 +354,7 @@ The multiple-ellipse functions also use a relative angle alongside the main angl
 
 The animation functions therefore combine boundary calculation, point plotting, timing and erasure into a single sequence. The main loop can call the appropriate function in response to a push-button input without needing to perform each drawing step itself.
 
-#### 5.5. Background Handling
+#### Background Handling
 
 The Bresenham-based animations erase shapes by drawing them again in black. This is straightforward when the background is entirely black, because the erased pixels return to the background colour.
 

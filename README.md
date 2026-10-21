@@ -14,9 +14,9 @@ The experiment also explores Bresenham-style rasterization algorithms as an alte
 
 1. [Objectives](#objectives)
 2. [Control Scheme](#control-scheme)
-3. [Implementation Overview](#implementation-overview)
-    * 3.1 [VGA Buffer](#1.-vga-pixel-buffer)
-    * 3.2 [Approaches to Ellipse Drawing](#2.-approaches-to-ellipse-drawing)
+3. [Implementation Overview](#implementation)
+    * 3.1 [VGA Buffer](#1.vga-pixel-buffer)
+    * 3.2 [Approaches to Ellipse Drawing](#2.approaches-to-ellipse-drawing)
 
 <br>
 

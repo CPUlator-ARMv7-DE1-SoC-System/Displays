@@ -10,6 +10,8 @@ The initial approach uses the equation of an ellipse to determine which pixels l
 
 The experiment also explores Bresenham-style rasterization algorithms as an alternative approach to drawing ellipses. Comparing these methods provides an opportunity to examine different ways of translating geometric shapes into discrete pixels on a display.
 
+---
+
 ### Table of contents
 
 1. [Objectives](#objectives)
@@ -23,6 +25,8 @@ The experiment also explores Bresenham-style rasterization algorithms as an alte
 4. [Notes and Limitations](#notes-and-limitations)
 5. [Learning Outcomes](#learning-outcomes)
 6. [Possible Extensions](#possible-extensions)
+
+---
 
 <br>
 
